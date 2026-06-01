@@ -1072,8 +1072,12 @@ mod tests {
         let sandbox = create_empty_moon_sandbox();
         let context = WorkspaceBuilderContext {
             cache_engine: Arc::new(
-                CacheEngine::new(sandbox.path().join(".moon/cache"), &CacheConfig::default())
-                    .unwrap(),
+                CacheEngine::new(
+                    sandbox.path().join(".moon/cache"),
+                    sandbox.path(),
+                    &CacheConfig::default(),
+                )
+                .unwrap(),
             ),
             config_loader: ConfigLoader::default(),
             enabled_toolchains: vec![],
@@ -1133,8 +1137,12 @@ mod tests {
         let sandbox = create_empty_moon_sandbox();
         let context = WorkspaceBuilderContext {
             cache_engine: Arc::new(
-                CacheEngine::new(sandbox.path().join(".moon/cache"), &CacheConfig::default())
-                    .unwrap(),
+                CacheEngine::new(
+                    sandbox.path().join(".moon/cache"),
+                    sandbox.path(),
+                    &CacheConfig::default(),
+                )
+                .unwrap(),
             ),
             config_loader: ConfigLoader::default(),
             enabled_toolchains: vec![],

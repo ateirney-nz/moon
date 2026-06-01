@@ -36,10 +36,14 @@ fn cas(c: &mut Criterion) {
     group.bench_function(id(100, "hash_files"), |b| {
         b.to_async(Runtime::new().unwrap()).iter(async || {
             handle_unwrap(
-                CacheEngine::new(sandbox.path().join("cache"), &CacheConfig::default())
-                    .unwrap()
-                    .hash_files(sandbox.path(), &get_relative_file_paths(100))
-                    .await,
+                CacheEngine::new(
+                    sandbox.path().join("cache"),
+                    sandbox.path(),
+                    &CacheConfig::default(),
+                )
+                .unwrap()
+                .hash_files(sandbox.path(), &get_relative_file_paths(100))
+                .await,
             );
         })
     });
@@ -47,10 +51,14 @@ fn cas(c: &mut Criterion) {
     group.bench_function(id(1000, "hash_files"), |b| {
         b.to_async(Runtime::new().unwrap()).iter(async || {
             handle_unwrap(
-                CacheEngine::new(sandbox.path().join("cache"), &CacheConfig::default())
-                    .unwrap()
-                    .hash_files(sandbox.path(), &get_relative_file_paths(1000))
-                    .await,
+                CacheEngine::new(
+                    sandbox.path().join("cache"),
+                    sandbox.path(),
+                    &CacheConfig::default(),
+                )
+                .unwrap()
+                .hash_files(sandbox.path(), &get_relative_file_paths(1000))
+                .await,
             );
         })
     });

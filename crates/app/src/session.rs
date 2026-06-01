@@ -176,6 +176,7 @@ impl MoonSession {
         if self.cache_engine.get().is_none() {
             let _ = self.cache_engine.set(Arc::new(CacheEngine::new(
                 &self.config_dir,
+                &self.moon_env.store_root,
                 &self.workspace_config.cache,
             )?));
         }

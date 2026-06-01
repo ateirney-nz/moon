@@ -30,6 +30,12 @@ pub struct CacheEngine {
     /// Contains cached items pertaining to runs and processes.
     pub cache_dir: PathBuf,
 
+    /// Root directory for the AC and CAS blob stores.
+    /// Defaults to `cache_dir` but can be redirected to the global
+    /// `MOON_HOME` cache via the experimental `X_MOON_SHARED_CAS_CACHE` flag
+    /// to share blobs across workspaces.
+    pub cas_root: PathBuf,
+
     /// A content-addressable storage of objects, primarily for
     /// storing task outputs.
     pub cas: CasStore,
@@ -50,7 +56,11 @@ pub struct CacheEngine {
 }
 
 impl CacheEngine {
-    pub fn new(config_dir: impl AsRef<Path>, config: &CacheConfig) -> miette::Result<CacheEngine> {
+    pub fn new(
+        config_dir: impl AsRef<Path>,
+        moon_store: impl AsRef<Path>,
+        config: &CacheConfig,
+    ) -> miette::Result<CacheEngine> {
         let dir = config_dir.as_ref().join("cache");
         let cache_tag = dir.join("CACHEDIR.TAG");
 
@@ -76,12 +86,32 @@ impl CacheEngine {
         // Action cache always uses defaults
         let ac_config = CacheCasConfig::default();
 
+        // Resolve where AC/CAS blob stores live. The experimental
+        // X_MOON_SHARED_CAS_CACHE flag routes blobs to the global MOON_HOME cache
+        // dir for zero-config cross-workspace sharing; otherwise they stay in
+        // the workspace-local .moon/cache.
+        let bag = GlobalEnvBag::instance();
+        let cas_root = if bag
+            .get("X_MOON_SHARED_CAS_CACHE")
+            .is_some_and(|v| v == "true" || v == "1")
+        {
+            moon_store.as_ref().join("cache")
+        } else {
+            dir.clone()
+        };
+
+        debug!(
+            cas_root = ?cas_root,
+            "Resolved CAS store root",
+        );
+
         Ok(CacheEngine {
-            ac: CasStore::new(dir.join("ac"), &ac_config)?,
-            cas: CasStore::new(dir.join("cas"), &config.cas)?,
+            ac: CasStore::new(cas_root.join("ac"), &ac_config)?,
+            cas: CasStore::new(cas_root.join("cas"), &config.cas)?,
             hash,
             state: StateEngine::new(&dir)?,
             temp_dir: dir.join("temp"),
+            cas_root,
             cache_dir: dir,
             mode: get_cache_mode(),
             forced_mode: RwLock::new(None),

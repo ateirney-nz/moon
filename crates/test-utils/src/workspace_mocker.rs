@@ -354,7 +354,12 @@ impl WorkspaceMocker {
     }
 
     pub fn mock_cache_engine(&self) -> CacheEngine {
-        CacheEngine::new(&self.config_dir, &self.workspace_config.cache).unwrap()
+        CacheEngine::new(
+            &self.config_dir,
+            &self.moon_env.store_root,
+            &self.workspace_config.cache,
+        )
+        .unwrap()
     }
 
     pub fn mock_console(&self) -> Console {
